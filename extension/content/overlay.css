@@ -1,0 +1,25 @@
+/* content/overlay.css */
+#postureguard-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  pointer-events: none;
+  backdrop-filter: blur(25px);
+  background: rgba(220, 38, 38, 0.15);
+  transition: opacity 0.3s ease;
+  display: none;
+}
+#postureguard-overlay.active {
+  display: block;
+}
+#postureguard-overlay .pg-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 24px;
+  font-weight: 700;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  font-family: system-ui, sans-serif;
+}
