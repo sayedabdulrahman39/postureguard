@@ -23,6 +23,10 @@ app.use(cors({
 app.use(express.json());
 
 // Routes
+app.get('/', (req, res) => {
+  res.json({ message: "PostureGuard API is running", version: "1.0.0" });
+});
+
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/session', sessionLimiter, sessionRoutes);
 app.use('/api/user', userRoutes);

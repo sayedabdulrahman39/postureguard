@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PostureGuard</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>PostureGuard</h2>
+      <div id="status-badge" class="badge off">OFF</div>
+    </div>
+    
+    <div class="main-controls">
+      <button id="toggle-btn" class="btn primary">Start Guarding</button>
+    </div>
+    
+    <div class="dashboard">
+      <div class="stat-box">
+        <span class="stat-label">Today's Slouches</span>
+        <span class="stat-value" id="slouch-count">0</span>
+      </div>
+      <div class="stat-card">
+        <h3>AI Status</h3>
+        <p id="ai-status" class="status-text">Inactive</p>
+      </div>
+    </div>
+    
+    <div id="popup-debug" style="margin-top: 15px; display: none; text-align: left; background: #0f172a; color: white; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 12px;">
+      <img id="popup-video" style="width: 100%; border-radius: 4px; margin-bottom: 5px;">
+      <div id="popup-stats"></div>
+    </div>
+
+    <a href="http://localhost:5173" target="_blank" class="dashboard-link">View Full Analytics ↗</a>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PostureGuard Setup</title>
+  <link rel="stylesheet" href="popup.css">
+  <style>
+    body { width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; background: #f8fafc; }
+    .container { max-width: 500px; width: 100%; text-align: center; padding: 40px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+    h2 { font-size: 24px; margin-bottom: 15px; color: #0f172a; }
+    p { color: #64748b; margin-bottom: 30px; font-size: 16px; line-height: 1.5; }
+    .success { color: #10b981; font-weight: 600; display: none; margin-top: 20px; font-size: 18px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Camera Permission Required</h2>
+    <p>Chrome blocked the camera request from the small popup menu.<br><br>Please click the button below to grant PostureGuard access to your camera so the AI can detect your posture.</p>
+    <button id="grant-btn" class="btn primary">Grant Camera Access</button>
+    <div id="success-msg" class="success">✅ Permission Granted! You can close this tab and click 'Start Guarding' in the extension.</div>
+  </div>
+  
+  <script src="setup.js"></script>
+</body>
+</html>

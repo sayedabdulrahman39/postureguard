@@ -1,93 +1,82 @@
 // background/service-worker.js
 
-let stream = null;
-let cameraBusyState = false;
+let offscreenCreated = false;
 
-// Attempt to get the camera stream
-async function requestCamera() {
-  try {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const videoDevices = devices.filter(d => d.kind === 'videoinput');
-    
-    if (videoDevices.length === 0) {
-      console.warn("No camera found.");
-      return;
-    }
+// Manage Offscreen Document Lifecycle
+async function setupOffscreenDocument(path) {
+  // Check if it already exists
+  const existingContexts = await chrome.runtime.getContexts({
+    contextTypes: ['OFFSCREEN_DOCUMENT'],
+    documentUrls: [chrome.runtime.getURL(path)]
+  });
 
-    stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    cameraBusyState = false;
-    console.log("Camera access granted.");
-  } catch (error) {
-    if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
-      console.error("Camera is busy or in use by another app.");
-      cameraBusyState = true;
-      notifyCameraBusy();
-      scheduleRetry();
-    } else {
-      console.error("Camera error:", error);
-    }
+  if (existingContexts.length > 0) {
+    return;
+  }
+
+  // Create the offscreen document
+  if (creating) {
+    await creating;
+  } else {
+    creating = chrome.offscreen.createDocument({
+      url: path,
+      reasons: ['USER_MEDIA'],
+      justification: 'To run MediaPipe for PostureGuard slouch detection'
+    });
+    await creating;
+    creating = null;
+    offscreenCreated = true;
   }
 }
 
-// Destroy stream on toggle OFF
-function stopCamera() {
-  if (stream) {
-    stream.getTracks().forEach(track => track.stop());
-    stream = null;
-    console.log("Camera stream stopped.");
-  }
+async function closeOffscreenDocument() {
+  if (!offscreenCreated) return;
+  await chrome.offscreen.closeDocument();
+  offscreenCreated = false;
 }
 
-function notifyCameraBusy() {
-  chrome.runtime.sendMessage({ type: "CAMERA_BUSY" }).catch(() => {});
-}
+let creating;
 
-// Polling retry for camera when busy
-function scheduleRetry() {
-  setTimeout(() => {
-    if (cameraBusyState) requestCamera();
-  }, 30000);
-}
-
-// Listen for messages from popup or content script
+// Listen for messages from popup or offscreen document
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   switch (message.type) {
     case "TOGGLE_ON":
-      requestCamera();
-      sendResponse({ status: "started" });
+      setupOffscreenDocument('background/offscreen.html').then(() => {
+        chrome.runtime.sendMessage({ target: 'offscreen', type: 'START_CAMERA' });
+      });
       break;
+
     case "TOGGLE_OFF":
-      stopCamera();
-      chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-        if(tabs.length) {
-          chrome.tabs.sendMessage(tabs[0].id, { type: "EXTENSION_OFF" }).catch(() => {});
-        }
+      chrome.runtime.sendMessage({ target: 'offscreen', type: 'STOP_CAMERA' }, () => {
+        closeOffscreenDocument();
       });
-      sendResponse({ status: "stopped" });
+      // Remove blur from active tabs
+      chrome.tabs.query({active: true}, (tabs) => {
+        tabs.forEach(tab => chrome.tabs.sendMessage(tab.id, { type: "EXTENSION_OFF" }).catch(() => {}));
+      });
       break;
+
+    case "CALIBRATION_START":
+      chrome.runtime.sendMessage({ target: 'offscreen', type: 'START_CALIBRATION' });
+      break;
+
     case "APPLY_BLUR":
-      chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-        if(tabs.length) {
-          chrome.tabs.sendMessage(tabs[0].id, { type: "APPLY_BLUR" }).catch(() => {});
-        }
+      chrome.tabs.query({}, (tabs) => {
+        tabs.forEach(tab => chrome.tabs.sendMessage(tab.id, { type: "APPLY_BLUR" }).catch(() => {}));
       });
       break;
+
     case "REMOVE_BLUR":
-      chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-        if(tabs.length) {
-          chrome.tabs.sendMessage(tabs[0].id, { type: "REMOVE_BLUR" }).catch(() => {});
-        }
+      chrome.tabs.query({}, (tabs) => {
+        tabs.forEach(tab => chrome.tabs.sendMessage(tab.id, { type: "REMOVE_BLUR" }).catch(() => {}));
+      });
+      break;
+
+    case "DEBUG_STATS":
+      chrome.tabs.query({}, (tabs) => {
+        tabs.forEach(tab => chrome.tabs.sendMessage(tab.id, message).catch(() => {}));
       });
       break;
   }
   return true;
-});
-
-// Handle tab focus changes to manage camera intelligently
-chrome.tabs.onActivated.addListener(() => {
-  if (stream) {
-    // Optional: Pause logic for tab changes
-    // stopCamera();
-    // setTimeout(requestCamera, 500);
-  }
 });
