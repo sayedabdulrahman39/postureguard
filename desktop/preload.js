@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   signIn: (data) => ipcRenderer.invoke('AUTH_SIGN_IN', data),
   signOut: () => ipcRenderer.invoke('AUTH_SIGN_OUT'),
   getUser: () => ipcRenderer.invoke('AUTH_GET_USER'),
+  savePostureLog: (logData) => ipcRenderer.invoke('SAVE_POSTURE_LOG', logData),
 
   // From Main to Renderer
   onStartCamera: (callback) => ipcRenderer.on('START_CAMERA', () => callback()),

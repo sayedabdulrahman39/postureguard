@@ -18,9 +18,10 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(255, 0, 0, 0); /* Invisible by default */
+      background: radial-gradient(circle, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.6) 100%);
       backdrop-filter: blur(0px);
-      transition: all 0.5s ease-in-out;
+      opacity: 0;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -28,30 +29,43 @@
     }
 
     #blur-overlay.active {
-      background: rgba(255, 0, 0, 0.4);
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(25px);
+      opacity: 1;
     }
 
     .pg-message {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      font-size: 4rem;
-      font-weight: bold;
+      font-family: 'Instrument Serif', serif;
+      font-size: 5rem;
+      font-weight: 900;
       color: white;
-      text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+      text-align: center;
+      max-width: 80%;
+      line-height: 1.1;
+      text-shadow: 0 10px 30px rgba(0,0,0,0.5);
       opacity: 0;
-      transform: translateY(20px);
-      transition: all 0.5s ease-in-out;
+      transform: scale(0.9) translateY(40px);
+      transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     #blur-overlay.active .pg-message {
       opacity: 1;
-      transform: translateY(0);
+      transform: scale(1) translateY(0);
+    }
+
+    /* Add a subtle vignette */
+    #blur-overlay::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.4) 100%);
+      pointer-events: none;
     }
   </style>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
 </head>
 <body>
   <div id="blur-overlay">
-    <div id="overlay-message" class="pg-message">Straighten up! PostureGuard active.</div>
+    <div id="overlay-message" class="pg-message italic font-serif">Time to take rest!</div>
   </div>
   <script src="overlay.js"></script>
 </body>

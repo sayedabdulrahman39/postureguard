@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Download, LayoutDashboard, User } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabaseClient';
 
 const Navbar = () => {
@@ -47,9 +48,22 @@ const Navbar = () => {
 
         {/* CTA */}
         <div className="hidden md:flex items-center gap-4">
-          <button className="glass-button text-sm bg-navy text-white hover:bg-navy/90 transition-all">
+          {user ? (
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={async () => {
+                await supabase.auth.signOut();
+                window.location.href = '/login';
+              }}
+              className="px-6 py-2 rounded-full font-bold text-xs uppercase tracking-widest text-navy/60 hover:text-alert-red transition-colors"
+            >
+              Logout
+            </motion.button>
+          ) : null}
+          <a href="/PostureGuard.zip" download className="glass-button text-sm bg-navy text-white hover:bg-navy/90 transition-all no-underline inline-block">
             Download App
-          </button>
+          </a>
         </div>
 
       </div>

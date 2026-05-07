@@ -40,6 +40,23 @@ ipcMain.handle('AUTH_GET_USER', async () => {
   return user;
 });
 
+ipcMain.handle('SAVE_POSTURE_LOG', async (event, logData) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Not authenticated' };
+
+  const { data, error } = await supabase
+    .from('posture_logs')
+    .insert([{
+      user_id: user.id,
+      posture_score: logData.score,
+      is_slouching: logData.isSlouching,
+      raw_ratio: logData.ratio,
+      timestamp: new Date().toISOString()
+    }]);
+  
+  return { data, error };
+});
+
 ipcMain.on('OPEN_EXTERNAL', (event, url) => {
   shell.openExternal(url);
 });
@@ -182,7 +199,7 @@ ipcMain.on('TOGGLE_OFF', () => {
 });
 
 ipcMain.on('APPLY_BLUR', (event, message) => {
-  if (isRunning) overlayWindow.webContents.send('APPLY_BLUR', message);
+  overlayWindow.webContents.send('APPLY_BLUR', message);
 });
 
 ipcMain.on('PLAY_REST_SOUND', () => {

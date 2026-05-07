@@ -8,7 +8,22 @@ const beepSound = document.getElementById('beep-sound');
 let isRunning = false;
 let currentBlurState = false;
 let lastDebugFrameTime = 0;
+let lastLogTime = 0;
+const LOG_INTERVAL = 30000; // Save log every 30 seconds
 let frameTimeout;
+
+async function saveLog(analysis) {
+  const score = analysis.state === "GOOD" ? 100 : (analysis.state === "WARNING" ? 60 : 20);
+  const isSlouching = analysis.state === "BLUR";
+  
+  await window.electronAPI.savePostureLog({
+    score: score,
+    isSlouching: isSlouching,
+    ratio: analysis.ratio || 0
+  });
+  
+  console.log(`Synced: ${analysis.state} (Score: ${score})`);
+}
 
 // Initialize MediaPipe Pose
 const pose = new window.Pose({
@@ -32,10 +47,11 @@ function onResults(results) {
   if (!results.poseLandmarks) return;
 
   const analysis = analyzePosture(results.poseLandmarks);
+  const isNewSlouch = (analysis.state === "BLUR" && !currentBlurState);
   
   if (analysis.state === "CALIBRATING_DONE") {
     window.electronAPI.sendAiStatus("Active");
-  } else if (analysis.state === "BLUR" && !currentBlurState) {
+  } else if (isNewSlouch) {
     currentBlurState = true;
     window.electronAPI.applyBlur();
     // Start beep sound loop
@@ -53,8 +69,14 @@ function onResults(results) {
     }
   }
 
-  // Debug broadcasting (throttled to ~10 FPS)
+  // Periodic Logging (Real-Time Sync)
   const now = Date.now();
+  if (now - lastLogTime > LOG_INTERVAL || isNewSlouch) {
+    lastLogTime = now;
+    saveLog(analysis);
+  }
+
+  // Debug broadcasting (throttled to ~10 FPS)
   if (now - lastDebugFrameTime > 100) {
     lastDebugFrameTime = now;
     

@@ -16,6 +16,12 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [logs, setLogs] = useState([]);
   const navigate = useNavigate();
+  const [stats, setStats] = useState({
+    score: 0,
+    events: 0,
+    hours: 0,
+    lung: 0
+  });
 
   useEffect(() => {
     const checkUser = async () => {
@@ -33,15 +39,36 @@ export default function Dashboard() {
   }, [navigate]);
 
   const fetchLogs = async (userId) => {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
     const { data, error } = await supabase
       .from('posture_logs')
       .select('*')
       .eq('user_id', userId)
+      .gte('timestamp', thirtyDaysAgo.toISOString())
       .order('timestamp', { ascending: true });
 
     if (!error && data) {
       setLogs(data);
+      calculateStats(data);
     }
+  };
+
+  const calculateStats = (data) => {
+    if (data.length === 0) return;
+
+    const avgScore = data.reduce((acc, log) => acc + (log.posture_score || 0), 0) / data.length;
+    const slouchCount = data.filter(log => log.is_slouching).length;
+    const totalHours = (data.length * 30) / 3600;
+    const lungImprovement = (avgScore / 100) * 15;
+
+    setStats({
+      score: Math.round(avgScore),
+      events: slouchCount,
+      hours: totalHours.toFixed(1),
+      lung: lungImprovement.toFixed(1)
+    });
   };
 
   const handleLogout = async () => {
@@ -55,55 +82,50 @@ export default function Dashboard() {
     </div>
   );
 
-  const chartData = logs.length > 0 ? logs : [
-    { timestamp: 'Mon', posture_score: 85 },
-    { timestamp: 'Tue', posture_score: 78 },
-    { timestamp: 'Wed', posture_score: 92 },
-    { timestamp: 'Thu', posture_score: 88 },
-    { timestamp: 'Fri', posture_score: 95 },
-    { timestamp: 'Sat', posture_score: 82 },
-    { timestamp: 'Sun', posture_score: 90 },
-  ];
+  const getChartData = () => {
+    if (logs.length === 0) return [{ timestamp: 'N/A', posture_score: 0 }];
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const grouped = logs.reduce((acc, log) => {
+      const date = new Date(log.timestamp);
+      const day = days[date.getDay()];
+      if (!acc[day]) acc[day] = { count: 0, sum: 0 };
+      acc[day].count++;
+      acc[day].sum += log.posture_score;
+      return acc;
+    }, {});
+    return days.map(day => ({
+      timestamp: day,
+      posture_score: grouped[day] ? Math.round(grouped[day].sum / grouped[day].count) : 0
+    }));
+  };
 
-  const frequencyData = [
-    { hour: '9AM', count: 2 },
-    { hour: '11AM', count: 5 },
-    { hour: '1PM', count: 3 },
-    { hour: '3PM', count: 8 },
-    { hour: '5PM', count: 4 },
-  ];
+  const getFrequencyData = () => {
+    const timeLabels = ['9AM', '11AM', '1PM', '3PM', '5PM', '7PM'];
+    const grouped = logs.reduce((acc, log) => {
+      const date = new Date(log.timestamp);
+      let hr = date.getHours();
+      let label = hr >= 12 ? (hr === 12 ? '12PM' : (hr-12) + 'PM') : (hr === 0 ? '12AM' : hr + 'AM');
+      if (!acc[label]) acc[label] = 0;
+      if (log.is_slouching) acc[label]++;
+      return acc;
+    }, {});
+    return timeLabels.map(h => ({ hour: h, count: grouped[h] || 0 }));
+  };
 
   const COLORS = ['#5C7CFA', '#748ffc', '#91a7ff', '#bac8ff', '#dbe4ff'];
 
   return (
-    <div className="min-h-screen pb-12">
-      {/* Header */}
-      <nav className="glass-card mx-4 mt-6 h-16 flex items-center justify-between px-8 bg-white/60">
-        <div className="flex items-center space-x-3">
-          <div className="text-xl font-serif font-bold text-navy">PostureGuard <span className="text-accent-blue italic">Analytics</span></div>
-        </div>
-        <div className="flex items-center space-x-6">
-          <span className="text-sm font-bold text-navy/60 hidden md:inline uppercase tracking-widest">{user?.email?.split('@')[0]}</span>
-          <button 
-            onClick={handleLogout}
-            className="flex items-center space-x-2 text-sm font-bold text-navy/40 hover:text-red-500 transition-colors uppercase tracking-widest"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Logout</span>
-          </button>
-        </div>
-      </nav>
-
+    <div className="min-h-screen pb-12 pt-24">
       <main className="max-w-7xl mx-auto px-4 mt-8">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
         >
-          <StatCard icon={<TrendingUp className="text-accent-blue"/>} label="Posture Score" value="92%" trend="+4% vs last week" />
-          <StatCard icon={<AlertCircle className="text-alert-red"/>} label="Slouch Events" value="12" trend="-2 vs yesterday" />
-          <StatCard icon={<Clock className="text-accent-blue"/>} label="Hours Monitored" value="48.5h" trend="This Month" />
-          <StatCard icon={<Wind className="text-accent-blue"/>} label="Lung Capacity" value="+15%" trend="Estimated improvement" />
+          <StatCard icon={<TrendingUp className="text-accent-blue"/>} label="Posture Score" value={`${stats.score}%`} trend="+4% vs last week" />
+          <StatCard icon={<AlertCircle className="text-alert-red"/>} label="Slouch Events" value={stats.events.toString()} trend="-2 vs yesterday" />
+          <StatCard icon={<Clock className="text-accent-blue"/>} label="Hours Monitored" value={`${stats.hours}h`} trend="This Month" />
+          <StatCard icon={<Wind className="text-accent-blue"/>} label="Lung Capacity" value={`+${stats.lung}%`} trend="Estimated improvement" />
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
@@ -122,7 +144,7 @@ export default function Dashboard() {
             </div>
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
+                <LineChart data={getChartData()}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(28, 36, 75, 0.05)" />
                   <XAxis dataKey="timestamp" axisLine={false} tickLine={false} tick={{fill: '#1C244B', fontSize: 10, fontWeight: 600}} dy={10} />
                   <YAxis axisLine={false} tickLine={false} tick={{fill: '#1C244B', fontSize: 10, fontWeight: 600}} dx={-10} domain={[0, 100]} />
@@ -151,11 +173,11 @@ export default function Dashboard() {
             <h3 className="text-xl font-serif font-bold text-navy mb-8">Slouch Frequency</h3>
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={frequencyData}>
+                <BarChart data={getFrequencyData()}>
                   <XAxis dataKey="hour" axisLine={false} tickLine={false} tick={{fill: '#1C244B', fontSize: 10, fontWeight: 600}} dy={10} />
                   <Tooltip cursor={{fill: 'rgba(92, 124, 250, 0.05)'}} contentStyle={{ borderRadius: '24px', border: 'none' }} />
                   <Bar dataKey="count" radius={[8, 8, 8, 8]} barSize={32}>
-                    {frequencyData.map((entry, index) => (
+                    {getFrequencyData().map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Bar>
