@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="../../node_modules/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="../../node_modules/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <!-- Hidden video and canvas elements -->
+  <video id="webcam" width="640" height="480" autoplay playsinline style="display:none;"></video>
+  <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+
+  <!-- Beep sound for slouch alert -->
+  <audio id="beep-sound" src="../../assets/beep.mp3" loop preload="auto"></audio>
+  <!-- Rest sound for break time alert -->
+  <audio id="rest-sound" src="../../assets/rest.mp3" preload="auto"></audio>
+
+  <script type="module" src="ai.js"></script>
+</body>
+</html>

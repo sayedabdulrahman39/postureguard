@@ -3,7 +3,7 @@
 // SLOUCH DETECTION CORE LOGIC
 
 const SLOUCH_THRESHOLD_RATIO = 0.85;   // Trigger if distance drops below 85% of baseline
-const SLOUCH_DEBOUNCE_MS = 2000;        // Must slouch for 2s continuously before blur
+const SLOUCH_DEBOUNCE_MS = 5000;        // Must slouch for 5s continuously before blur
 const CALIBRATION_SAMPLES = 30;         // Frames averaged for baseline
 
 let baseline = null;

@@ -1,7 +1,50 @@
 @import "tailwindcss";
 
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@theme {
+  --color-navy: #1C244B;
+  --color-accent-blue: #5C7CFA;
+  --color-alert-red: #EF4444;
+  --font-serif: "Instrument Serif", serif;
+  --font-sans: "Inter", sans-serif;
+  --radius-xl: 24px;
+}
+
+:root {
+  --sky-gradient: linear-gradient(180deg, #B9D1EB 0%, #FFFFFF 100%);
+  --glass-bg: rgba(255, 255, 255, 0.4);
+  --glass-border: rgba(255, 255, 255, 0.6);
+}
+
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply font-sans text-navy antialiased min-h-screen selection:bg-accent-blue/30;
+    background: var(--sky-gradient);
+    background-attachment: fixed;
+  }
+  
+  h1, h2, h3, h4 {
+    @apply font-serif leading-tight;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/40 backdrop-blur-md border border-white/60 rounded-xl shadow-sm;
+  }
+  
+  .glass-button {
+    @apply px-8 py-3 rounded-full font-bold transition-all duration-300 transform active:scale-95 bg-navy text-white;
+  }
+  
+  .bento-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .nav-link {
+    @apply relative font-semibold text-sm hover:text-accent-blue transition-colors duration-300;
   }
 }

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PostureGuard</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="title-bar">
+    <div class="title-text">PostureGuard</div>
+    <div class="title-controls">
+      <button id="minimize-btn" class="title-btn minimize">&#8211;</button>
+      <button id="close-btn" class="title-btn close">&#10005;</button>
+    </div>
+  </div>
+  <div class="container">
+    <div id="auth-overlay" class="auth-overlay">
+      <div class="auth-box">
+        <h3>Login to PostureGuard</h3>
+        <p>Sync your analytics to the cloud</p>
+        <input type="email" id="login-email" placeholder="Email" />
+        <input type="password" id="login-password" placeholder="Password" />
+        <button id="login-btn" class="btn primary">Login</button>
+        <p class="auth-footer">Register on our website to get started</p>
+      </div>
+    </div>
+
+    <div class="header">
+      <div class="user-info">
+        <span id="user-display">Guest</span>
+        <button id="logout-btn" class="text-btn" style="display: none;">Logout</button>
+      </div>
+      <div id="status-badge" class="badge off">OFF</div>
+    </div>
+    
+    <div class="main-controls">
+      <button id="toggle-btn" class="btn primary">Start Guarding</button>
+    </div>
+    
+    <div class="dashboard">
+      <div class="stat-box">
+        <span class="stat-label">Today's Slouches</span>
+        <span class="stat-value" id="slouch-count">0</span>
+      </div>
+      <div class="stat-card">
+        <h3>AI Status</h3>
+        <p id="ai-status" class="status-text">Inactive</p>
+      </div>
+    </div>
+    
+    <div id="popup-debug" style="margin-top: 15px; display: none; text-align: left; background: #0f172a; color: white; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 12px;">
+      <img id="popup-video" style="width: 100%; border-radius: 4px; margin-bottom: 5px;">
+      <div id="popup-stats"></div>
+    </div>
+
+    <div class="timer-section">
+      <h3>Time Breaker</h3>
+      <div class="timer-inputs">
+        <div class="input-group">
+          <label>Work (min)</label>
+          <input type="number" id="work-time" min="1" max="30" value="25" />
+        </div>
+        <div class="input-group">
+          <label>Rest (min)</label>
+          <input type="number" id="rest-time" min="1" max="30" value="5" />
+        </div>
+      </div>
+      <div id="timer-display" class="timer-display" style="display: none;">
+        Next Break in: <span id="time-left">25:00</span>
+      </div>
+    </div>
+
+    <button id="view-analytics-btn" class="dashboard-link-btn">View Full Analytics ↗</button>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
